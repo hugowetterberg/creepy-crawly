@@ -1,0 +1,1 @@
+The beginnings of a website crawler for node written in coffe-script 
