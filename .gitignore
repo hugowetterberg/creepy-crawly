@@ -1,0 +1,4 @@
+node_modules
+/*.js
+/lib/*.js
+/lib/public/app.js

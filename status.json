@@ -1,0 +1,10 @@
+{
+  "todo" : [
+    "Better extensibility for the built in parsers",
+    "More full featured web interface",
+    "Do some QA for the url normalization and altering",
+    "Improve the backend data handling so that redis doesn't have to be flushed all the time"
+  ],
+  "done" : [
+  ]
+}

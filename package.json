@@ -1,0 +1,41 @@
+{
+  "name": "creepy-crawly",
+  "version": "0.0.1",
+  "description": "A generic website crawler geared towards baking",
+  "keywords": ["crawler", "spider", "baking"],
+  "maintainers": [{
+    "name": "Hugo Wetterberg",
+    "email": "hugo@wetterberg.nu",
+    "web": "http://twitter.com/hugowett"
+  }],
+  "contributors": [],
+  "bugs": {
+    "mail": "hugo@wetterberg.nu",
+    "web": "https://github.com/hugowetterberg/creepy-crawly/issues"
+  },
+  "licenses": [{
+    "type": "MIT",
+    "url": "https://github.com/hugowetterberg/creepy-crawly/blob/master/LICENSE.txt"
+  }],
+  "repositories": [{
+    "type": "git",
+    "url": "https://github.com/tmpvar/jsdom.git"
+  }],
+  "dependencies": {
+    "redis": "=0.6.7",
+    "jsdom": "=0.2.1",
+    "weld": "=0.2.1",
+    "html-minifier": "=0.43"
+  },
+  "devDependencies": {
+    "coffe-script": ">=1.1.1"
+  },
+  "engines": {
+    "node": ">=0.4.8"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "main": "./creepy"
+}
+

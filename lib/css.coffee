@@ -1,7 +1,7 @@
 url = require 'url'
 
 r_url = /url\([^)]+\)/g
-r_url_argument = /\(['"]?(.*)['"]?\)/
+r_url_argument = /\(['"]?(.*[^'"])['"]?\)/
 
 exports.Parser = class CssParser
   constructor: (@crawly, @uri, response = null)->
@@ -11,14 +11,24 @@ exports.Parser = class CssParser
 
   parse: (data)->
     urls = data.match(r_url)
-    if urls
-      for url_match in urls
-        match = url_match.match(r_url_argument)
-        if match
-          @crawly.addStartingPoint url.resolve(@uri.href, match[1])
+    @mutated = data.replace r_url, (url_match)=>
+      match = url_match.match(r_url_argument)
+      if match
+        console.log "Found uri reference in css #{match[1]}"
+        puri = @crawly.addStartingPoint url.resolve(@uri.href, match[1]), yes
+        if puri
+          console.log "¶¶ Registering outlink from #{@uri.href} to #{puri.href}"
+          console.dir puri
+          @crawly.registerOutLink @uri, puri
+        if puri and puri.alternate_href?
+          return "url(\"#{puri.alternate_href}\")"
+      url_match
 
   isStreaming: ()->
-    return false
+    return no
 
   isMutator: ()->
-    return false
+    return yes
+
+  mutatedData: ()->
+    @mutated
