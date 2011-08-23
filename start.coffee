@@ -1,16 +1,15 @@
 creepy = require './creepy'
 path = require 'path'
+fs = require 'fs'
 redis = require 'redis'
 
-directory = path.resolve(process.argv[2])
+fs.readFile "crawl.json", "utf-8", (error, data)->
+  if error then throw error
 
-domain = 'golabs.local'
-if process.argv.length > 3
-  domain = process.argv[3]
+  config = JSON.parse(data)
 
-db = redis.createClient()
-
-crawly = new creepy.Crawly(directory, db)
-crawly.addDomain(domain)
-crawly.addSupportedParameters ['page']
+  db = redis.createClient()
+  crawly = new creepy.Crawly(config.directory, db)
+  crawly.addDomain(config.domain)
+  crawly.addSupportedParameters ['page']
 
