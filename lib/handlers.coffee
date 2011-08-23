@@ -29,7 +29,7 @@ handler_utils.add exports, 'GET', 'pages',
   handler: (api, components)->
     db = api.crawly.getRedis()
     page = if api.purl.query['page'] then api.purl.query['page'] else 0
-    db.zrevrange 'uri:score', page*20, 20, 'WITHSCORES', (err, result)->
+    db.zrevrange 'uri:score', page*20, page*20+19, 'WITHSCORES', (err, result)->
       if not err
         api.result result
       else
