@@ -17,7 +17,6 @@ exports.Crawly = class Crawly extends events.EventEmitter
     @variants = {}
     @parameters = {}
     @root_url = no
-    @db.flushall()
     @server = server.start(this)
     null
 

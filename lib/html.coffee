@@ -23,10 +23,6 @@ exports.Parser = class HtmlParser
     title = @dom.querySelector("title")
     if title
       @crawly.setUriInfo @uri.href, 'title', title.innerHTML
-    user_link = @dom.querySelectorAll ".username"
-    for l in user_link
-      console.log "Userlink"
-      console.dir l.outerHTML
     
     links = @dom.querySelectorAll "a, link"
     for l in links
