@@ -28,7 +28,7 @@
     "html-minifier": "=0.4.4"
   },
   "devDependencies": {
-    "coffe-script": ">=1.1.1"
+    "coffee-script": ">=1.1.1"
   },
   "engines": {
     "node": ">=0.4.8"
