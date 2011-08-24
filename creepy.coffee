@@ -13,7 +13,7 @@ parsers =
 
 exports.Crawly = class Crawly extends events.EventEmitter
   constructor: (@output_directory, @db_connection)->
-    @domains = {}
+    @domain = null
     @variants = {}
     @parameters = {}
     @root_url = no
@@ -39,13 +39,13 @@ exports.Crawly = class Crawly extends events.EventEmitter
 
   registerOutLink: (from, to, score=1)->
     multi = @db.multi()
-    multi.zincrby "uri:score", score, to.href
-    multi.zincrby "uri:out:#{from.href}", score, to.href
-    multi.zincrby "uri:in:#{to.href}", score, from.href
+    multi.zincrby "batch:#{@batch}:uri:score", score, to.href
+    multi.zincrby "batch:#{@batch}:uri:out:#{from.href}", score, to.href
+    multi.zincrby "batch:#{@batch}:uri:in:#{to.href}", score, from.href
     multi.exec()
 
-  addDomain: (domain)->
-    @domains[domain] = yes
+  setDomain: (domain)->
+    @domain = domain
     if not @root_url
       @root_url = "http://#{domain}/"
 
@@ -96,14 +96,19 @@ exports.Crawly = class Crawly extends events.EventEmitter
   setUriInfoMulti: (uri, properties)->
     @db.hmset "uri:info:#{uri}", properties
 
-  addStartingPoint: (uri, mutating = no, callback = null)->
+  addStartingPoint: (uri, mutating = no, options = {}, callback = null)->
     @addingStartingPoint()
+
+    if typeof options is 'function'
+      callback = options
+      options = {}
+    modified = options.modified? and options.modified
 
     puri = url.parse(uri, yes)
     if not callback
       callback = ->
 
-    if typeof(@domains[puri.hostname]) is 'undefined'
+    if not puri.hostname is @domain
       return no
 
     # Ignore non-http protocols
@@ -184,11 +189,11 @@ exports.Crawly = class Crawly extends events.EventEmitter
     console.dir save
 
     @db.hget 'crawl_state', puri.sha1, (error, state)=>
-        if not state
+        if not state or modified
           @db.multi()
-            .sadd('crawl_queue', puri.sha1)
-            .hset('crawl_state', puri.sha1, 'queued')
-            .hmset("uri:#{puri.sha1}", save)
+            .sadd("batch:#{@batch}:crawl_queue", puri.sha1)
+            .hset("batch:#{@batch}:crawl_state", puri.sha1, 'queued')
+            .hmset("batch:#{@batch}:uri:#{puri.sha1}", save)
             .exec (error, results)=>
               if not error
                 console.log "Queued: #{puri.sha1} (#{norm})"
@@ -204,7 +209,7 @@ exports.Crawly = class Crawly extends events.EventEmitter
   crawl: ()->
     if not path.existsSync @output_directory
       mkdirp(@output_directory, ->)
-    @db.spop 'crawl_queue', (error, sha1)=>
+    @db.spop "batch:#{@batch}:crawl_queue", (error, sha1)=>
       if not error and sha1
         console.log "Got sha1 #{sha1} from queue"
         @crawlNext sha1, (error, status)=>
@@ -219,13 +224,13 @@ exports.Crawly = class Crawly extends events.EventEmitter
 
   crawlNext: (sha1, callback)->
     done = (error, status)=>
-      @db.hset 'crawl_state', sha1, 'crawled', ()->
+      @db.hset "batch:#{@batch}:crawl_state", sha1, 'crawled', ()->
         callback(error, status)
 
     console.log "Loading info for #{sha1}"
     @db.multi()
-      .hset('crawl_state', sha1, 'in_progress')
-      .hgetall("uri:#{sha1}")
+      .hset("batch:#{@batch}:crawl_state", sha1, 'in_progress')
+      .hgetall("batch:#{@batch}:uri:#{sha1}")
       .exec (error, results)=>
         [state_set, uri] = results
 
@@ -240,6 +245,15 @@ exports.Crawly = class Crawly extends events.EventEmitter
             @download(uri, done)
         else
           @download(uri, done)
+
+  saveMimeStats: (info)->
+    multi = @db.multi()
+    multi.hincrby "batch:#{@batch}:stats:num.files", info.mime_type, info.weight
+    multi.hincrby "batch:#{@batch}:stats:size", info.mime_type, info.weight
+    multi.hincrby "batch:#{@batch}:stats:download.time", info.mime_type, info.download_time
+    if info.parse_time?
+      multi.hincrby "batch:#{@batch}:stats:parse.time", info.mime_type, info.parse_time
+    multi.exec()
 
   download: (uri, callback)->
     req_opts =
@@ -267,6 +281,8 @@ exports.Crawly = class Crawly extends events.EventEmitter
           download_time: download_finished.getTime() - download_start.getTime()
         if parse_start
           info.parse_time = parse_finished.getTime() - parse_start.getTime()
+
+        @saveMimeStats info
         @setUriInfoMulti uri.href, info
 
       mime_type = response.headers['content-type']

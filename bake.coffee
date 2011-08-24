@@ -14,7 +14,8 @@ console.log "Baking #{domain} to #{directory}"
 db_connection = ()-> redis.createClient()
 
 crawly = new creepy.Crawly(directory, db_connection)
-crawly.addDomain(domain)
+crawly.setDomain(domain)
 crawly.addSupportedParameters ['page']
-crawly.addStartingPoint start
-crawly.crawl()
+crawly.startBatch ()->
+  crawly.addStartingPoint start
+  crawly.crawl()
