@@ -12,16 +12,30 @@ parsers =
   'text/css': require('./lib/css')
 
 exports.Crawly = class Crawly extends events.EventEmitter
-  constructor: (@output_directory, @db)->
+  constructor: (@output_directory, @db_connection)->
     @domains = {}
     @variants = {}
     @parameters = {}
     @root_url = no
     @server = server.start(this)
+    @batch = 0
+    @db = @db_connection()
     null
 
   getRedis: ()->
     @db
+
+  newRedisConnection: ()->
+    @db_connection()
+
+  startBatch: (callback)->
+    if not @batch
+      @db.incr "global:next:batch", (error, result)=>
+        @batch = if not error then result else 0
+        @db.hset "batch:#{@batch}", "created", new Date().getTime()
+        callback error, result
+    else
+      callback new Error('Batch already started')
 
   registerOutLink: (from, to, score=1)->
     multi = @db.multi()

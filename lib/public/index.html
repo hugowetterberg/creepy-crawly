@@ -10,6 +10,14 @@
     </div>
     <div id="page-info">
     </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io.connect('/');
+      socket.on('update', function (data) {
+        console.log(data);
+        socket.emit('hello', { message: 'world' });
+      });
+    </script>
     <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="/underscore.js"></script>
     <script type="text/javascript" charset="utf-8" src="/backbone.js"></script>

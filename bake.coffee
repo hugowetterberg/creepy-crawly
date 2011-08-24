@@ -11,9 +11,9 @@ start = "http://#{domain}"
 
 console.log "Baking #{domain} to #{directory}"
 
-db = redis.createClient()
+db_connection = ()-> redis.createClient()
 
-crawly = new creepy.Crawly(directory, db)
+crawly = new creepy.Crawly(directory, db_connection)
 crawly.addDomain(domain)
 crawly.addSupportedParameters ['page']
 crawly.addStartingPoint start

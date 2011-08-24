@@ -8,8 +8,8 @@ fs.readFile "crawl.json", "utf-8", (error, data)->
 
   config = JSON.parse(data)
 
-  db = redis.createClient()
-  crawly = new creepy.Crawly(config.directory, db)
+  db_connection = ()-> redis.createClient()
+  crawly = new creepy.Crawly(config.directory, db_connection)
   crawly.addDomain(config.domain)
   crawly.addSupportedParameters ['page']
 

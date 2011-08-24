@@ -25,7 +25,8 @@
     "redis": "=0.6.7",
     "jsdom": "=0.2.1",
     "weld": "=0.2.1",
-    "html-minifier": "=0.4.4"
+    "html-minifier": "=0.4.4",
+    "socket.io": "=0.7.9"
   },
   "devDependencies": {
     "coffee-script": ">=1.1.1"
