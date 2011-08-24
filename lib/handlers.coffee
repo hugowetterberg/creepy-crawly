@@ -1,53 +1,84 @@
 utils = require './utils'
 path = require 'path'
-handler_utils = require './handler_utils'
+url = require 'url'
 
 ###
 The request handlers.
 ###
 
-# Static files fallback
-### SYMBOL:GET ###
-handler_utils.add exports, 'GET', '',
-  handler: (api, components)->
-    file_path = components.join('/')
-    if file_path is ''
-      file_path = 'index.html'
-    mime = switch path.extname(file_path)
-      when '.html', '.htm' then 'text/html'
-      when '.js' then 'application/javascript'
-      when '.css' then 'text/css'
-      when '.png' then 'image/png'
-      when '.jpg', '.jpeg' then 'image/jpeg'
-      else 'text/plain'
-    api.passthrough(file_path, mime)
-    null
+exports.register = (app, crawly)->
 
-# Get start page
-### SYMBOL:GET pages ###
-handler_utils.add exports, 'GET', 'pages',
-  handler: (api, components)->
-    db = api.crawly.getRedis()
-    page = if api.purl.query['page'] then api.purl.query['page'] else 0
+  helpers =
+    ###
+    Convenience function for sending results to the client.
+
+    @result object
+    ###
+    result: (res, result)->
+      res.writeHead 200,
+        'Content-Type': 'application/json'
+        'Cache-Control': 'no-cache'
+        'Expires': 'Fri, 30 Oct 1998 14:19:41 GMT'
+      res.end JSON.stringify(
+        status: 200
+        response: result
+      )
+      null
+
+    ###
+    Convenience function for sending an error response to the client.
+
+    @status int
+      Error code.
+    @message object
+    ###
+    errorResult: (res, status, message, error)->
+      res.writeHead status,
+        'Content-Type': 'application/json'
+      response =
+        status: status
+        message: if message then message else 'Error'
+
+      if error
+        console.dir error
+        response.errorCode = error.code
+        if error.data?
+          response.data = error.data
+
+      res.end JSON.stringify(response)
+      null
+
+    ###
+    Convenience function for an not found error response to the client.
+
+    @message object
+    ###
+    notFoundResult = (message)->
+      @errorResult res, 404, message ? message : 'Resource cannot be found'
+      null
+
+  # Get start page
+  ### SYMBOL:GET pages ###
+  app.get '/pages', (req, res)->
+    db = crawly.getRedis()
+    purl = url.parse(req.url, true)
+    page = if purl.query['page'] then purl.query['page'] else 0
     db.zrevrange 'uri:score', page*20, page*20+19, 'WITHSCORES', (err, result)->
       if not err
-        api.result result
+        helpers.result res, result
       else
-        api.errorResult 501, 'Could not fetch pages from database'
+        helpers.errorResult res, 501, 'Could not fetch pages from database'
     null
 
-# Add a starting point
-### SYMBOL:POST api/add-starting-point ###
-handler_utils.add exports, 'POST', 'api/add-starting-point',
-  requireAttributes: ['url']
-  handler: (api, components)->
-    api.crawly.addStartingPoint 
-    api.result 'ok'
+  # Add a starting point
+  ### SYMBOL:POST api/add-starting-point ###
+  app.post '/api/add-starting-point', (req, res)->
+    crawly.addStartingPoint req.body.url
+    helpers.result res, 'ok'
     null
 
-# Start crawling
-### SYMBOL:POST api/crawl ###
-handler_utils.add exports, 'POST', 'api/crawl',
-  handler: (api, components)->
-    api.result 'ok'
+  # Start crawling
+  ### SYMBOL:POST api/crawl ###
+  app.post '/api/crawl', (req, res)->
+    helpers.result res, 'ok'
     null
