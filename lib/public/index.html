@@ -10,12 +10,28 @@
     </div>
     <div id="page-info">
     </div>
+    <div id="stats">
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io.connect('/');
       socket.on('update', function (data) {
         console.log(data);
         socket.emit('hello', { message: 'world' });
+      });
+      socket.on('mime.stats', function(data) {
+        mime_class = data[0].replace('/', '_');
+        e = $('#stats .' + mime_class);
+        if (!e.length) {
+          e = $('<div>Files:<span class="files"></span><br/>Weight:<span class="weight"></span><br/>Download time:<span class="download-time"></span><br/>Parse time:<span class="parse-time"></span><br/></div>').appendTo('#stats').addClass(mime_class);
+          $('<h3></h3>').text(data[0]).prependTo(e);
+        }
+        $('.files', e).text(data[1]);
+        $('.weight', e).text(data[2]);
+        $('.download-time', e).text(data[3]);
+        if (data.length > 4) {
+          $('.parse-time', e).text(data[4]);
+        }
       });
     </script>
     <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>

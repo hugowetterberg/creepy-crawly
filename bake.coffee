@@ -17,5 +17,6 @@ crawly = new creepy.Crawly(directory, db_connection)
 crawly.setDomain(domain)
 crawly.addSupportedParameters ['page']
 crawly.startBatch ()->
-  crawly.addStartingPoint start
-  crawly.crawl()
+  crawly.addStartingPoint start, yes, ()->
+    console.log "Starting point added"
+    crawly.crawl()

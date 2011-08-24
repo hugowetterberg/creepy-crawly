@@ -19,7 +19,8 @@ exports.Crawly = class Crawly extends events.EventEmitter
     @root_url = no
     @server = server.start(this)
     @batch = 0
-    @db = @db_connection()
+    @db = @newRedisConnection()
+    @queue_feed_db = @newRedisConnection()
     null
 
   getRedis: ()->
@@ -108,7 +109,7 @@ exports.Crawly = class Crawly extends events.EventEmitter
     if not callback
       callback = ->
 
-    if not puri.hostname is @domain
+    if not (puri.hostname is @domain)
       return no
 
     # Ignore non-http protocols
@@ -185,13 +186,10 @@ exports.Crawly = class Crawly extends events.EventEmitter
       save[key] = value
     save.serialized = JSON.stringify(save.serialized)
 
-    console.log "Queue data"
-    console.dir save
-
-    @db.hget 'crawl_state', puri.sha1, (error, state)=>
+    @db.hget "batch:#{@batch}:crawl_state", puri.sha1, (error, state)=>
         if not state or modified
           @db.multi()
-            .sadd("batch:#{@batch}:crawl_queue", puri.sha1)
+            .rpush("batch:#{@batch}:crawl_queue", puri.sha1)
             .hset("batch:#{@batch}:crawl_state", puri.sha1, 'queued')
             .hmset("batch:#{@batch}:uri:#{puri.sha1}", save)
             .exec (error, results)=>
@@ -209,17 +207,16 @@ exports.Crawly = class Crawly extends events.EventEmitter
   crawl: ()->
     if not path.existsSync @output_directory
       mkdirp(@output_directory, ->)
-    @db.spop "batch:#{@batch}:crawl_queue", (error, sha1)=>
-      if not error and sha1
-        console.log "Got sha1 #{sha1} from queue"
-        @crawlNext sha1, (error, status)=>
-          @crawl()
-      else if error
-        console.log "Error while fetching jobs from queue #{error}"
-      else if not sha1
-        console.log "The queue is empty, waiting for starting point"
-        @once 'starting_point_added', (puri, queued)=>
-          @crawl()
+
+    @queue_feed_db.blpop "batch:#{@batch}:crawl_queue", 1, (error, result)=>
+      if result
+        [list, sha1] = result
+        if not error and sha1
+          console.log "Got sha1 #{sha1} from queue"
+          @crawlNext sha1, (error, status)=>
+            @crawl()
+        else if error
+          console.log "Error while fetching jobs from queue #{error}"
     
 
   crawlNext: (sha1, callback)->
@@ -248,12 +245,14 @@ exports.Crawly = class Crawly extends events.EventEmitter
 
   saveMimeStats: (info)->
     multi = @db.multi()
-    multi.hincrby "batch:#{@batch}:stats:num.files", info.mime_type, info.weight
+    multi.hincrby "batch:#{@batch}:stats:num.files", info.mime_type, 1
     multi.hincrby "batch:#{@batch}:stats:size", info.mime_type, info.weight
     multi.hincrby "batch:#{@batch}:stats:download.time", info.mime_type, info.download_time
     if info.parse_time?
       multi.hincrby "batch:#{@batch}:stats:parse.time", info.mime_type, info.parse_time
-    multi.exec()
+    multi.exec (err, result)=>
+      result.unshift(info.mime_type)
+      @emit 'mime.stats', result
 
   download: (uri, callback)->
     req_opts =
