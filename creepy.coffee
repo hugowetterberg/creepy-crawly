@@ -33,8 +33,12 @@ exports.Crawly = class Crawly extends events.EventEmitter
     if not @batch
       @db.incr "global:next:batch", (error, result)=>
         @batch = if not error then result else 0
-        @db.hset "batch:#{@batch}", "created", new Date().getTime()
-        callback error, result
+        multi = @db.multi();
+        multi.rpush "batches", @batch
+        multi.hset "batch:#{@batch}", "created", new Date().getTime()
+        multi.hset "batch:#{@batch}", "id", @batch
+        multi.exec (error, result)->
+          callback error, @batch
     else
       callback new Error('Batch already started')
 
@@ -245,14 +249,19 @@ exports.Crawly = class Crawly extends events.EventEmitter
 
   saveMimeStats: (info)->
     multi = @db.multi()
-    multi.hincrby "batch:#{@batch}:stats:num.files", info.mime_type, 1
+    multi.hincrby "batch:#{@batch}:stats:files", info.mime_type, 1
     multi.hincrby "batch:#{@batch}:stats:size", info.mime_type, info.weight
-    multi.hincrby "batch:#{@batch}:stats:download.time", info.mime_type, info.download_time
+    multi.hincrby "batch:#{@batch}:stats:download_time", info.mime_type, info.download_time
+    multi.hincrby "batch:#{@batch}", "files", 1
+    multi.hincrby "batch:#{@batch}", "size", info.weight
+    multi.hincrby "batch:#{@batch}", "download_time", info.download_time
+
     if info.parse_time?
-      multi.hincrby "batch:#{@batch}:stats:parse.time", info.mime_type, info.parse_time
+      multi.hincrby "batch:#{@batch}:stats:parse_time", info.mime_type, info.parse_time
+      multi.hincrby "batch:#{@batch}", "parse_time", info.parse_time
     multi.exec (err, result)=>
       result.unshift(info.mime_type)
-      @emit 'mime.stats', result
+      @emit 'stats', result
 
   download: (uri, callback)->
     req_opts =

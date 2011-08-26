@@ -19,7 +19,8 @@
         console.log(data);
         socket.emit('hello', { message: 'world' });
       });
-      socket.on('mime.stats', function(data) {
+      socket.on('stats', function(data) {
+        console.log(data)
         mime_class = data[0].replace('/', '_');
         e = $('#stats .' + mime_class);
         if (!e.length) {
