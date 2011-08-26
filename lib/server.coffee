@@ -19,8 +19,8 @@ exports.start = (crawly)->
       hello: 'hello world'
     socket.on 'hello', (data)->
       console.log data
-    crawly.on 'mime.stats', (data)->
-      socket.emit 'mime.stats', data
+    crawly.on 'stats', (data)->
+      socket.emit 'stats', data
 
   app
   

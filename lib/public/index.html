@@ -12,6 +12,10 @@
     </div>
     <div id="stats">
     </div>
+
+    <h2>Finished batches</h2>
+    <ul id="batch-list"></ul>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io.connect('/');
@@ -35,10 +39,29 @@
         }
       });
     </script>
+
+    <script type="text/template" id="batch-list-template">
+      <li>
+        <span class="id">[<%= id %>]</span>
+        <span class="created"><%= prettyCreated %></span>
+        <span class="files"><%= files %></span>
+        <span class="size"><%= prettySize %></span>
+        <span class="download-time"><%= prettyDownloadTime %></span>
+      </li>
+    </script>
+    <script type="text/template" id="batch-stats-template">
+      <li>
+        <span class="id">[<%= id %>]</span>
+        <span class="created"><%= prettyCreated %></span>
+        <span class="files"><%= files %></span>
+        <span class="size"><%= prettySize %></span>
+        <span class="download-time"><%= prettyDownloadTime %></span>
+      </li>
+    </script>
+
     <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="/underscore.js"></script>
     <script type="text/javascript" charset="utf-8" src="/backbone.js"></script>
-    <script type="text/javascript" charset="utf-8" src="/weld.js"></script>
     <script type="text/javascript" charset="utf-8" src="/app.js"></script>
   </body>
 </html>

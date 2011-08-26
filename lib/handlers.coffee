@@ -19,10 +19,7 @@ exports.register = (app, crawly)->
         'Content-Type': 'application/json'
         'Cache-Control': 'no-cache'
         'Expires': 'Fri, 30 Oct 1998 14:19:41 GMT'
-      res.end JSON.stringify(
-        status: 200
-        response: result
-      )
+      res.end JSON.stringify(result)
       null
 
     ###
@@ -68,6 +65,33 @@ exports.register = (app, crawly)->
         helpers.result res, result
       else
         helpers.errorResult res, 501, 'Could not fetch pages from database'
+    null
+
+  ### SYMBOL:GET batches ###
+  app.get '/api/batches', (req, res)->
+    db = crawly.getRedis()
+    purl = url.parse(req.url, true)
+    page = if purl.query['page'] then purl.query['page'] else 0
+    db.lrange "batches", page*20, page*20+19, (err, result)->
+      if not err
+        multi = db.multi()
+        for batchId in result
+          multi.hgetall "batch:#{batchId}"
+        multi.exec (err, batches)->
+          helpers.result res, batches
+      else
+        helpers.errorResult res, 501, 'Could not fetch batches from database'
+
+    null
+
+  ### SYMBOL:GET single batch ###
+  app.get '/api/batches/:batch', (req, res)->
+    db = crawly.getRedis()
+    db.hgetall "batch:#{req.params.batch}", (err, result)->
+      if not err
+        helpers.result res, result
+      else
+        helpers.errorResult res, 501, 'Could not fetch batch from database'
     null
 
   # Add a starting point
