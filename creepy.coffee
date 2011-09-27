@@ -349,4 +349,7 @@ exports.Crawly = class Crawly extends events.EventEmitter
           save_info()
           callback()
 
+    request.on 'error', (error)->
+      callback(error)
+
     request.end()
