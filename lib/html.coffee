@@ -63,9 +63,9 @@ exports.Parser = class HtmlParser
       removeCDATASectionsFromCDATA: yes
       #collapseWhitespace: yes
       collapseBooleanAttributes: yes
-      removeAttributeQuotes: yes
+      #removeAttributeQuotes: yes
       removeRedundantAttributes: yes    
       removeEmptyAttributes: yes
-      removeEmptyElements: yes
-      removeOptionalTags: yes      
+      #removeEmptyElements: yes
+      #removeOptionalTags: yes
       removeScriptTypeAttributes: yes
