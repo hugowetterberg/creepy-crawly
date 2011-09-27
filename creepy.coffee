@@ -126,7 +126,6 @@ exports.Crawly = class Crawly extends events.EventEmitter
     if not puri.pathname? or puri.pathname is ''
       puri.pathname = '/'
     else if not (puri.pathname is '/') and path.extname(puri.pathname) is '' and not (puri.pathname.length is puri.pathname.lastIndexOf('/') + 1)
-      console.log "Adding ending slash to #{puri.pathname}"
       puri.pathname = "#{puri.pathname}/"
 
     puri.query = if puri.query? @supportedParameterSubset(puri.query) else no
