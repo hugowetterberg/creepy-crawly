@@ -17,7 +17,8 @@ exports.Crawly = class Crawly extends events.EventEmitter
     @variants = {}
     @parameters = {}
     @root_url = no
-    @server = server.start(this)
+    if @output_directory
+      @server = server.start(this)
     @batch = 0
     @db = @newRedisConnection()
     @queue_feed_db = @newRedisConnection()
