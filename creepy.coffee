@@ -224,8 +224,16 @@ exports.Crawly = class Crawly extends events.EventEmitter
 
   crawlNext: (sha1, callback)->
     done = (error, status)=>
-      @db.hset "batch:#{@batch}:crawl_state", sha1, 'crawled', ()->
-        callback(error, status)
+      if error
+        console.dir error
+        @db.multi()
+          .rpush("batch:#{@batch}:crawl_queue", sha1)
+          .hset("batch:#{@batch}:crawl_state", sha1, 'failed')
+          .exec ()->
+            callback(error, status)
+      else
+        @db.hset "batch:#{@batch}:crawl_state", sha1, 'crawled', ()->
+          callback(error, status)
 
     console.log "Loading info for #{sha1}"
     @db.multi()
