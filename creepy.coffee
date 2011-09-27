@@ -96,10 +96,10 @@ exports.Crawly = class Crawly extends events.EventEmitter
     null
 
   setUriInfo: (uri, property, value)->
-    @db.hset "uri:info:#{uri}", property, value
+    @db.hset "batch:#{batch}:uri:info:#{uri}", property, value
 
   setUriInfoMulti: (uri, properties)->
-    @db.hmset "uri:info:#{uri}", properties
+    @db.hmset "batch:#{batch}:uri:info:#{uri}", properties
 
   addStartingPoint: (uri, mutating = no, options = {}, callback = null)->
     @addingStartingPoint()
