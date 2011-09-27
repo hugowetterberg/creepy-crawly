@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Creepy Crawly</title>
+    <link href="style/style.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <div id="pages">
@@ -13,8 +14,8 @@
     <div id="stats">
     </div>
 
-    <h2>Finished batches</h2>
-    <ul id="batch-list"></ul>
+    <h2></h2>
+    <div id="view"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -41,25 +42,36 @@
     </script>
 
     <script type="text/template" id="batch-list-template">
+      <ul>
       <li>
-        <span class="id">[<%= id %>]</span>
+      <span class="id"><a href="#stats/<%= id %>">[<%= id %>]</a></span>
         <span class="created"><%= prettyCreated %></span>
         <span class="files"><%= files %></span>
         <span class="size"><%= prettySize %></span>
         <span class="download-time"><%= prettyDownloadTime %></span>
       </li>
+      </ul>
     </script>
     <script type="text/template" id="batch-stats-template">
-      <li>
-        <span class="id">[<%= id %>]</span>
-        <span class="created"><%= prettyCreated %></span>
-        <span class="files"><%= files %></span>
-        <span class="size"><%= prettySize %></span>
-        <span class="download-time"><%= prettyDownloadTime %></span>
-      </li>
+      <div class="charts">
+        <div>
+          <h3>Total number of files: <%= files %></h3>
+          <div id="chart-files"></div>
+        </div>
+        <div>
+          <h3>Total size: <%= prettySize %></h3>
+          <div id="chart-size"></div>
+        </div>
+        <div>
+          <h3>Total time: <%= prettyDownloadTime %></h3>
+          <div id="chart-download-time"></div>
+        </div>
+      </div>
     </script>
 
     <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/raphael.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/pie.js"></script>
     <script type="text/javascript" charset="utf-8" src="/underscore.js"></script>
     <script type="text/javascript" charset="utf-8" src="/backbone.js"></script>
     <script type="text/javascript" charset="utf-8" src="/app.js"></script>

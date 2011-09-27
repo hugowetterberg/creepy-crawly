@@ -87,8 +87,19 @@ exports.register = (app, crawly)->
   ### SYMBOL:GET single batch ###
   app.get '/api/batches/:batch', (req, res)->
     db = crawly.getRedis()
-    db.hgetall "batch:#{req.params.batch}", (err, result)->
+    multi = db.multi()
+    multi.hgetall "batch:#{req.params.batch}"
+    multi.hgetall "batch:#{req.params.batch}:stats:files"
+    multi.hgetall "batch:#{req.params.batch}:stats:size"
+    multi.hgetall "batch:#{req.params.batch}:stats:download_time"
+    multi.exec (err, data)->
       if not err
+        # format result
+        result = data[0]
+        result['stats'] = {}
+        result['stats']['files'] = data[1]
+        result['stats']['size'] = data[2]
+        result['stats']['download_time'] = data[3]
         helpers.result res, result
       else
         helpers.errorResult res, 501, 'Could not fetch batch from database'
