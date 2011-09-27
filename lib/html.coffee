@@ -27,7 +27,7 @@ exports.Parser = class HtmlParser
     links = @dom.querySelectorAll "a, link"
     for l in links
       href = l.attributes.getNamedItem 'href'
-      if href
+      if href and href.nodeValue.length
         uri = @crawly.addStartingPoint url.resolve(@uri.href, href.nodeValue), yes
         if uri
           @crawly.registerOutLink @uri, uri
@@ -44,11 +44,12 @@ exports.Parser = class HtmlParser
     
     sourced = @dom.querySelectorAll "script[src], img"
     for s in sourced
-      uri = @crawly.addStartingPoint url.resolve(@uri.href, s.src), yes
-      if uri
-        @crawly.registerOutLink @uri, uri
-      if uri and uri.alternate_href?
-        s.src = uri.alternate_href
+      if s.src.length
+        uri = @crawly.addStartingPoint url.resolve(@uri.href, s.src), yes
+        if uri
+          @crawly.registerOutLink @uri, uri
+        if uri and uri.alternate_href?
+          s.src = uri.alternate_href
 
   isStreaming: ()->
     return false
