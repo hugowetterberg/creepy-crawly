@@ -3,19 +3,23 @@ The beginnings of a website crawler for node written in coffe-script.
 To get started:
 
 Run the helper script to watch and recompile all coffe-script files:
-$ creepy-crawly/watch.sh
+
+    $ creepy-crawly/watch.sh
 
 Create log and database directories for redis:
-$ mkdir logs redis
+
+    $ mkdir logs redis
 
 Run redis:
-$ redis-server creepy-crawly/redis.conf
+    $ redis-server creepy-crawly/redis.conf
 
 Copy the example crawl.json and edit it to suit your needs:
-$ cp creepy-crawly/crawl.json.example ./crawl.json
-$ nano crawl.json
+
+    $ cp creepy-crawly/crawl.json.example ./crawl.json
+    $ nano crawl.json
 
 Run creepy-crawly:
-$ node creepy-crawly/start
+
+    $ node creepy-crawly/start
 
 Open the web-UI in your browser: http://127.0.0.1:8033
