@@ -1,5 +1,19 @@
 (($)->
 
+  roundNumber = (number, decimal_points) ->
+    return Math.round(number)  unless decimal_points
+    if number is 0
+      decimals = ""
+      i = 0
+
+      while i < decimal_points
+        decimals += "0"
+        i++
+      return "0." + decimals
+    exponent = Math.pow(10, decimal_points)
+    num = Math.round((number * exponent)).toString()
+    num.slice(0, -1 * decimal_points) + "." + num.slice(-1 * decimal_points)
+
   formatTime = (timeFormat, date) ->
     p = p = (s) ->
       (if (s < 10) then "0" + s else s)
@@ -30,11 +44,18 @@
           return (if date then (if date.getHours() < 12 then am else pm) else "(" + am + "|" + pm + ")")
       ""
 
-  formatSize = (bytes) ->
-    return Math.round(bytes / 1000) + 'KB'
+  formatSize = (n) ->
+    for m in ['B', 'K', 'M', 'G']
+      if n <= 1024 or m == 'G'
+        return roundNumber(n, 2) + m
+      else
+        n = n / 1024
 
   formatTimeInterval = (milliseconds) ->
     return Math.round(milliseconds / 1000) + 's'
+
+  formatNumber = (num) ->
+    return num
 
   App =
     urlRoot: '/api/batches'
@@ -68,7 +89,6 @@
         vars.prettySize = formatSize(vars.size)
         vars.prettyDownloadTime = formatTimeInterval(vars.download_time)
         $(@el).append(@template(vars))
-      $("h2").html('Finished batches');
       return @
 
   App.BatchStats = Backbone.View.extend
@@ -82,12 +102,13 @@
       batch.fetch()
 
     render: ->
-      pie = (stats, elementID)->
+      pie = (stats, elementID, formater)->
         numbers = []
         labels = []
         _.each stats, (num, mime)->
           numbers.push (num/vars.files) * 100
-          labels.push mime + ' ' + num
+          label = mime.split('/')[1]
+          labels.push label + "\n" + formater(num)
         Raphael(elementID, 400, 400).pieChart(200, 200, 100, numbers, labels, "#fff");
 
       vars = @model.toJSON()
@@ -95,11 +116,11 @@
       vars.prettyCreated = formatTime('HH:mm', created)
       vars.prettySize = formatSize(vars.size)
       vars.prettyDownloadTime = formatTimeInterval(vars.download_time)
-      $("h2").html('Batch ' + @model.id)
-      $(@el).html(@template(vars))
-      pie vars.stats.files, "chart-files"
-      pie vars.stats.size, "chart-size"
-      pie vars.stats.download_time, "chart-download-time"
+      $("h2").html '<a href="/">' + $("h2").text() + '</a> <span class="divider">/</span> Batch ' + @model.id
+      $(@el).html @template vars
+      pie vars.stats.files, "chart-files", formatNumber
+      pie vars.stats.size, "chart-size", formatSize
+      pie vars.stats.download_time, "chart-download-time", formatTimeInterval
       return @
 
   App.Admin = Backbone.Router.extend

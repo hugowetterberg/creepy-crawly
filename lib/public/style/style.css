@@ -1,3 +1,76 @@
+/* =============================================================================
+Base
+========================================================================== */
+
+/*
+ * 1. Corrects text resizing oddly in IE6/7 when body font-size is set using em units
+ *    http://clagnut.com/blog/348/#c790
+ * 2. Keeps page centred in all browsers regardless of content height
+ * 3. Prevents iOS text size adjust after orientation change, without disabling user zoom
+ *    www.456bereastreet.com/archive/201012/controlling_text_size_in_safari_for_ios_without_disabling_user_zoom/
+ */
+
+html {
+  font-size: 100%; /* 1 */
+  overflow-y: scroll; /* 2 */
+  -webkit-text-size-adjust: 100%; /* 3 */
+  -ms-text-size-adjust: 100%; /* 3 */
+}
+
+/*
+ * Addresses margins handled incorrectly in IE6/7
+ */
+
+body {
+  margin: 10px;
+  font-family: "Helvitica Neue", Helvetica, Arial, sans-serif;
+}
+
+/*
+ * Addresses font-family inconsistency between 'textarea' and other form elements.
+ */
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: sans-serif;
+}
+
+
+/* =============================================================================
+Links
+========================================================================== */
+
+a {
+  color: #555;
+}
+
+a:visited {
+  color: #555;
+}
+
+/*
+ * Addresses outline displayed oddly in Chrome
+ */
+
+a:focus {
+  outline: thin dotted;
+}
+a:hover {
+  color: #888;
+}
+
+/*
+ * Improves readability when focused and also mouse hovered in all browsers
+ * people.opera.com/patrickl/experiments/keyboard/test
+ */
+
+a:hover,
+a:active {
+  outline: 0;
+}
 .charts > div {
   float: left
 }

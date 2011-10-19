@@ -14,7 +14,7 @@
     <div id="stats">
     </div>
 
-    <h2></h2>
+    <h2>Finished batches</h2>
     <div id="view"></div>
 
     <form id="login-form" style="display:none">
@@ -99,7 +99,15 @@
         </div>
       </div>
     </script>
-
+    <script type="text/template" id="stats-table-template">
+      <table cellspacing="0" cellpadding="0">
+        <tr><th>Type</th><th>Number of files</th><th>Size</th><th>Time</th></tr>
+        <%= rows %>
+      </table>
+    </script>
+    <script type="text/template" id="stats-table-row-template">
+      <tr><td><%= type %></td><td><%= files %></td><td><%= size %></td><td><%= time %></td></tr>
+    </script>
     <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/lib/raphael.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/pie.js"></script>
