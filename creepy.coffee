@@ -272,6 +272,7 @@ exports.Crawly = class Crawly extends events.EventEmitter
       @emit 'stats', result
 
   download: (uri, callback)->
+    console.log "Downloading #{uri.href}"
     req_opts =
       host: uri.hostname
       port: uri.port
