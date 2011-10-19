@@ -94,7 +94,9 @@
   App.BatchStats = Backbone.View.extend
     el: '#view'
 
-    template: _.template($("#batch-stats-template").html())
+    batchStatsTemplate: _.template($("#batch-stats-template").html())
+    statsTableRowTemplate: _.template($("#stats-table-row-template").html())
+    statsTableTemplate: _.template($("#stats-table-template").html())
 
     initialize: ->
       batch = @model
@@ -112,15 +114,38 @@
         Raphael(elementID, 400, 400).pieChart(200, 200, 100, numbers, labels, "#fff");
 
       vars = @model.toJSON()
+      mimes = {}
+      for stat of vars.stats
+        for mime of vars.stats[stat]
+          if not mimes[mime] then mimes[mime] = {}
+          mimes[mime][stat] = vars.stats[stat][mime]
+
+      rows = ''
+      for mime of mimes
+        vars = mimes[mime]
+        vars.type = mime
+        vars.prettyCreated = formatTime('HH:mm', created)
+        vars.prettySize = formatSize(vars.size)
+        vars.prettyDownloadTime = formatTimeInterval(vars.download_time)
+        rows += @statsTableRowTemplate vars
+
+
+
       created = new Date((parseInt(vars.created, 10)))
       vars.prettyCreated = formatTime('HH:mm', created)
       vars.prettySize = formatSize(vars.size)
       vars.prettyDownloadTime = formatTimeInterval(vars.download_time)
       $("h2").html '<a href="/">' + $("h2").text() + '</a> <span class="divider">/</span> Batch ' + @model.id
-      $(@el).html @template vars
+      $(@el).html @batchStatsTemplate vars
+      table = @statsTableTemplate {rows: rows}
+      $(@el).append table
+
       pie vars.stats.files, "chart-files", formatNumber
       pie vars.stats.size, "chart-size", formatSize
       pie vars.stats.download_time, "chart-download-time", formatTimeInterval
+      # Table
+
+
       return @
 
   App.Admin = Backbone.Router.extend
