@@ -17,9 +17,40 @@
     <h2></h2>
     <div id="view"></div>
 
+    <form id="login-form" style="display:none">
+      <div id="login-failed" style="display:none"></div>
+      <label>Username</label><input type="text" name="username"/><br/>
+      <label>Password</label><input type="password" name="password"/><br/>
+      <input type="submit" value="Log in"/>
+    </form>
+    <script src="/signing.auth/signing.auth.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
     <script>
-      var socket = io.connect('/');
+      var socket = io.connect('/'),
+        sa = new SigningAuth(socket, localStorage);
+
+      $('#login-form').bind('submit', function() {
+        $('#login-form').hide();
+        var key = $('#login-form input[name="username"]').val(),
+          secret = $('#login-form input[name="password"]').val();
+        sa.response(key, secret);
+        return false
+      });
+
+      sa.bind('challenge', function(data, automaticResponseFailed){
+        console.log("We were challenged");
+        $('#login-form').show();
+      });
+      sa.bind('success', function(data) {
+        console.log("Yay! Success!");
+        console.log(data);
+      });
+      sa.bind('failed', function(data) {
+        console.log("Nooo! Fail!");
+        $('#login-failed').show().text(data.message);
+      });
+
       socket.on('update', function (data) {
         console.log(data);
         socket.emit('hello', { message: 'world' });

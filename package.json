@@ -27,7 +27,8 @@
     "weld": "=0.2.1",
     "html-minifier": "=0.4.4",
     "socket.io": "=0.7.9",
-    "express": "=2.4.6"
+    "express": "=2.4.6",
+    "signing_auth": "=>0.0.1"
   },
   "devDependencies": {
     "coffee-script": ">=1.1.1"
