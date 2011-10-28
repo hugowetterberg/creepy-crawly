@@ -2,7 +2,12 @@ url = require 'url'
 http = require 'http'
 fs = require 'fs'
 path = require 'path'
-mkdirp = require 'npm/lib/utils/mkdir-p'
+
+try
+  mkdirp = require 'npm/lib/utils/mkdir-p'
+catch error
+  mkdirp = (path, callback)->
+    mkdir path, 0777, callback
 crypto = require 'crypto'
 events = require 'events'
 server = require './lib/server'
@@ -207,6 +212,21 @@ exports.Crawly = class Crawly extends events.EventEmitter
           @startingPointAdded(puri, no)
           callback(puri, no)
     puri
+
+  markResourceAsDirty: (resource)->
+    @db.multi()
+      .sadd("resources:dirty", resource.identifier)
+      .hmset("resource:dirty:#{resource.identifier}", resource)
+      .exec()
+
+  markResourceAsDeleted: (resource)->
+    @db.multi()
+      .sadd("resources:dirty", resource.identifier)
+      .del("resource:dirty:#{resource.identifier}")
+      # Clean up potential dirty info for the resource
+      .srem("resources:dirty", resource.identifier)
+      .hdel("resource:dirty:#{resource.identifier}", resource)
+      .exec()
 
   crawl: ()->
     if not path.existsSync @output_directory
